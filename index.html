@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>トイレ付き・電卓</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --btn: #1f2937;
+      --btn-hi: #334155;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --danger: #ef4444;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans JP, Helvetica, Arial;
+      background: radial-gradient(1200px 600px at 50% -20%, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .calc {
+      width: min(780px, 100%);
+      background: linear-gradient(180deg, #0b1224, var(--panel));
+      border: 1px solid #26324a;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #0b1224;
+      border-bottom: 1px solid #1f2a3d;
+    }
+    .brand { font-weight: 700; }
+    .display {
+      padding: 16px;
+      min-height: 120px;
+      display: grid;
+      gap: 10px;
+      align-content: end;
+      background: repeating-linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.03) 2px, transparent 2px, transparent 36px);
+    }
+    .expr { font-size: 22px; color: var(--muted); word-break: break-all; }
+    .result { font-size: 44px; font-weight: 800; line-height: 1.1; word-break: break-all; }
+
+    .grid {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+      background: #0c1428;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    button {
+      border: none;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 14px 10px;
+      font-size: 22px;
+      font-weight: 700;
+      background: var(--btn);
+      color: var(--text);
+      transition: transform .05s ease, filter .2s ease;
+    }
+    button:hover { filter: brightness(1.06); }
+    button:active { transform: translateY(1px); }
+    .op { background: #182233; }
+    .accent { background: linear-gradient(180deg, #0ea5e9, #0284c7); }
+    .danger { background: linear-gradient(180deg, #ef4444, #dc2626); }
+    .wide { grid-column: span 2; }
+    .tall { grid-row: span 2; }
+
+    .funbar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px 16px; }
+    .fun {
+      display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px;
+      background: #0b1224; border: 1px dashed #1e293b; border-radius: 14px; color: var(--muted);
+      font-weight: 700;
+    }
+
+    .poop { position: absolute; font-size: 40px; pointer-events: none; animation: floatUp 1.2s ease forwards; }
+    @keyframes floatUp { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(-80px) scale(.9); opacity: 0; } }
+
+    .flushWave { position: absolute; inset: 0; border-radius: 18px; overflow: hidden; pointer-events: none; }
+    .flushWave::after {
+      content: ""; position: absolute; left: -120%; top: 60%; width: 140%; height: 60%;
+      background: radial-gradient(60% 120% at 50% 0%, rgba(56,189,248,.35), transparent 70%), linear-gradient(180deg, rgba(14,165,233,.35), rgba(2,132,199,.1));
+      transform: rotate(-6deg) translateY(140%);
+      animation: flush 900ms ease forwards;
+    }
+    @keyframes flush { to { transform: rotate(-6deg) translateY(0%); opacity: 0; } }
+  </style>
+</head>
+<body>
+  <div class="calc" role="application" aria-label="トイレ付き電卓">
+    <div class="topbar">
+      <div class="brand">🧮 トイレ付き・電卓</div>
+      <div style="font-size:12px;color:var(--muted)">うんこ💩 / べんき🚽 を装備</div>
+    </div>
+    <div class="display" id="display">
+      <div class="expr" id="expr">0</div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="grid" id="grid">
+      <button class="danger" data-action="clear">AC</button>
+      <button class="op" data-action="del">DEL</button>
+      <button class="op" data-val="(">(</button>
+      <button class="op" data-val=")">)</button>
+
+      <button data-val="7">7</button>
+      <button data-val="8">8</button>
+      <button data-val="9">9</button>
+      <button class="op" data-val="/">÷</button>
+
+      <button data-val="4">4</button>
+      <button data-val="5">5</button>
+      <button data-val="6">6</button>
+      <button class="op" data-val="*">×</button>
+
+      <button data-val="1">1</button>
+      <button data-val="2">2</button>
+      <button data-val="3">3</button>
+      <button class="op" data-val="-">−</button>
+
+      <button class="wide" data-val="0">0</button>
+      <button data-val=".">.</button>
+      <button class="op" data-val="+">＋</button>
+
+      <button class="accent tall" data-action="equals">＝</button>
+    </div>
+    <div class="funbar">
+      <button class="fun" id="poopBtn"><span style="font-size:22px">💩</span> うんこボタン</button>
+      <button class="fun" id="toiletBtn"><span style="font-size:22px">🚽</span> べんきボタン</button>
+    </div>
+  </div>
+
+  <script>
+    const exprEl = document.getElementById('expr');
+    const resultEl = document.getElementById('result');
+    const grid = document.getElementById('grid');
+    const display = document.getElementById('display');
+    let expr = '';
+
+    function render() {
+      exprEl.textContent = expr || '0';
+      try {
+        const safe = sanitize(expr);
+        if (safe === '' || /[+\\-*/.(]$/.test(safe)) { resultEl.textContent = '0'; return; }
+        const val = evaluateSafe(safe);
+        resultEl.textContent = Number.isFinite(val) ? val.toLocaleString('ja-JP') : 'エラー';
+      } catch { resultEl.textContent = 'エラー'; }
+    }
+    function sanitize(s) { return (s.match(/[0-9+\\-*/(). ]/g) || []).join(''); }
+    function evaluateSafe(s) { return Function(`"use strict"; return (${s});`)(); }
+    function appendVal(v) { exp
